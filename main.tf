@@ -328,11 +328,11 @@ resource "aws_iam_role_policy_attachment" "role_attachment" {
 }
 
 resource "aws_lambda_function" "api_lambda" {
-  filename         = "~/Documents/app.zip"
+  filename         = "app.zip"
   function_name    = "serverless_api"
   role             = aws_iam_role.lambda_s3_aurora.arn
   handler          = "index.handler"
-  source_code_hash = filebase64sha256("~/Documents/app.zip")
+  source_code_hash = filebase64sha256(var.artifact_location)
 
   runtime = "nodejs16.x"
 

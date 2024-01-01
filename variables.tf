@@ -1,29 +1,27 @@
 variable "region" {
-  type    = string
-  default = "us-east-1"
+  type = string
 }
 
 variable "aws_profile" {
-  type    = string
-  default = "new_neo"
+  type = string
 }
 
 variable "cidr_block" {
-  type    = string
-  default = "10.0.0.0/24"
+  type = string
 }
 
 variable "private_subnets" {
-  type    = number
-  default = 3
+  type = number
 }
 
 variable "database" {
-  type    = string
-  default = "webapp"
+  type = string
+}
+
+variable "artifact_location" {
+  type = string
 }
 
 variable "domain" {
-  type    = string
-  default = "hellodocker.com"
+  type = string
 }
