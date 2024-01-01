@@ -35,9 +35,9 @@ resource "aws_security_group" "endpoint_sg" {
   description = "Interface Endpoint security group to allow inbound/outbound from the VPC"
   vpc_id      = aws_vpc.dev_vpc.id
   ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
     security_groups = [aws_security_group.lambda_sg.id]
   }
   egress {
@@ -783,7 +783,7 @@ resource "aws_api_gateway_deployment" "my_api_gateway_deployment" {
     create_before_destroy = true
   }
 
-  depends_on = [ aws_api_gateway_integration.delete_product_image_integration ]
+  depends_on = [aws_api_gateway_integration.delete_product_image_integration]
 }
 
 data "aws_acm_certificate" "ssl_certificate" {
