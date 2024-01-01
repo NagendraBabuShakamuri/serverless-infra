@@ -26,6 +26,9 @@ jobs:
       # Checks that all Terraform configuration files adhere to a canonical format
       - name: Terraform Format
         run: terraform fmt -check
+
+      - name: Create the Dummy Artifact
+        run: touch app.zip
         
       # Checks that all Terraform configuration files are valid
       - name: Terraform Validate
