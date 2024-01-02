@@ -328,7 +328,7 @@ resource "aws_iam_role_policy_attachment" "role_attachment" {
 }
 
 resource "aws_lambda_function" "api_lambda" {
-  filename         = "app.zip"
+  filename         = "~/Documents/app.zip"
   function_name    = "serverless_api"
   role             = aws_iam_role.lambda_s3_aurora.arn
   handler          = "index.handler"
@@ -358,19 +358,19 @@ resource "aws_lambda_function" "api_lambda" {
 
 resource "aws_lambda_permission" "permissions" {
   for_each = {
-    "healthz_permission" : "/GET/healthz",
-    "create_user_permission" : "/POST/user",
-    "get_user_permission" : "/GET/user/*",
-    "update_user_permission" : "/PUT/user/*",
-    "get_product_permission" : "/GET/product/*",
-    "create_product_permission" : "/POST/product",
-    "put_product_permission" : "/PUT/product/*",
-    "patch_product_permission" : "/PATCH/product/*",
-    "delete_product_permission" : "/DELETE/product/*",
-    "get_images_permission" : "/GET/product/*/image",
-    "get_image_permission" : "/GET/product/*/image/*",
-    "upload_image_permission" : "/POST/product/*/image",
-    "delete_image_permission" : "/DELETE/product/*/image/*"
+    "healthz_permission" : "/ANY/healthz",
+    "create_user_permission" : "/ANY/user",
+    "get_user_permission" : "/ANY/user/*",
+    # "update_user_permission" : "/PUT/user/*",
+    "get_product_permission" : "/ANY/product/*",
+    "create_product_permission" : "/ANY/product",
+    # "put_product_permission" : "/PUT/product/*",
+    # "patch_product_permission" : "/PATCH/product/*",
+    # "delete_product_permission" : "/DELETE/product/*",
+    "get_images_permission" : "/ANY/product/*/image",
+    "get_image_permission" : "/ANY/product/*/image/*",
+    # "upload_image_permission" : "/POST/product/*/image",
+    # "delete_image_permission" : "/DELETE/product/*/image/*"
   }
   statement_id  = each.key
   action        = "lambda:InvokeFunction"
@@ -386,6 +386,12 @@ resource "aws_api_gateway_rest_api" "api_gateway" {
   endpoint_configuration {
     types = ["REGIONAL"]
   }
+}
+
+resource "aws_api_gateway_resource" "any" {
+  rest_api_id = aws_api_gateway_rest_api.api_gateway.id
+  parent_id   = aws_api_gateway_rest_api.api_gateway.root_resource_id
+  path_part   = "{any+}"
 }
 
 resource "aws_api_gateway_resource" "healthz" {
@@ -409,7 +415,7 @@ resource "aws_api_gateway_resource" "post_user" {
 resource "aws_api_gateway_resource" "user" {
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
   parent_id   = aws_api_gateway_resource.post_user.id
-  path_part   = "{userId}"
+  path_part   = "{userId+}"
 }
 
 resource "aws_api_gateway_resource" "post_product" {
@@ -433,7 +439,7 @@ resource "aws_api_gateway_resource" "product_images" {
 resource "aws_api_gateway_resource" "product_image" {
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
   parent_id   = aws_api_gateway_resource.product_images.id
-  path_part   = "{imageId}"
+  path_part   = "{imageId+}"
 }
 
 resource "aws_api_gateway_method" "any" {
@@ -443,12 +449,19 @@ resource "aws_api_gateway_method" "any" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method" "healthz" {
+resource "aws_api_gateway_method" "any_any" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.healthz.id
-  http_method   = "GET"
+  resource_id   = aws_api_gateway_resource.any.id
+  http_method   = "ANY"
   authorization = "NONE"
 }
+
+# resource "aws_api_gateway_method" "healthz" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.healthz.id
+#   http_method   = "GET"
+#   authorization = "NONE"
+# }
 
 resource "aws_api_gateway_method" "any_healthz" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
@@ -457,12 +470,12 @@ resource "aws_api_gateway_method" "any_healthz" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method" "get_user" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.user.id
-  http_method   = "GET"
-  authorization = "NONE"
-}
+# resource "aws_api_gateway_method" "get_user" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.user.id
+#   http_method   = "GET"
+#   authorization = "NONE"
+# }
 
 resource "aws_api_gateway_method" "any_user" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
@@ -471,12 +484,12 @@ resource "aws_api_gateway_method" "any_user" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method" "post_user" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.post_user.id
-  http_method   = "POST"
-  authorization = "NONE"
-}
+# resource "aws_api_gateway_method" "post_user" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.post_user.id
+#   http_method   = "POST"
+#   authorization = "NONE"
+# }
 
 resource "aws_api_gateway_method" "any_user_1" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
@@ -485,19 +498,19 @@ resource "aws_api_gateway_method" "any_user_1" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method" "put_user" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.user.id
-  http_method   = "PUT"
-  authorization = "NONE"
-}
+# resource "aws_api_gateway_method" "put_user" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.user.id
+#   http_method   = "PUT"
+#   authorization = "NONE"
+# }
 
-resource "aws_api_gateway_method" "get_product" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.product.id
-  http_method   = "GET"
-  authorization = "NONE"
-}
+# resource "aws_api_gateway_method" "get_product" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.product.id
+#   http_method   = "GET"
+#   authorization = "NONE"
+# }
 
 resource "aws_api_gateway_method" "any_product" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
@@ -506,12 +519,12 @@ resource "aws_api_gateway_method" "any_product" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method" "post_product" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.post_product.id
-  http_method   = "POST"
-  authorization = "NONE"
-}
+# resource "aws_api_gateway_method" "post_product" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.post_product.id
+#   http_method   = "POST"
+#   authorization = "NONE"
+# }
 
 resource "aws_api_gateway_method" "any_product_1" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
@@ -520,33 +533,33 @@ resource "aws_api_gateway_method" "any_product_1" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method" "put_product" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.product.id
-  http_method   = "PUT"
-  authorization = "NONE"
-}
+# resource "aws_api_gateway_method" "put_product" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.product.id
+#   http_method   = "PUT"
+#   authorization = "NONE"
+# }
 
-resource "aws_api_gateway_method" "patch_product" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.product.id
-  http_method   = "PATCH"
-  authorization = "NONE"
-}
+# resource "aws_api_gateway_method" "patch_product" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.product.id
+#   http_method   = "PATCH"
+#   authorization = "NONE"
+# }
 
-resource "aws_api_gateway_method" "delete_product" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.product.id
-  http_method   = "DELETE"
-  authorization = "NONE"
-}
+# resource "aws_api_gateway_method" "delete_product" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.product.id
+#   http_method   = "DELETE"
+#   authorization = "NONE"
+# }
 
-resource "aws_api_gateway_method" "get_product_images" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.product_images.id
-  http_method   = "GET"
-  authorization = "NONE"
-}
+# resource "aws_api_gateway_method" "get_product_images" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.product_images.id
+#   http_method   = "GET"
+#   authorization = "NONE"
+# }
 
 resource "aws_api_gateway_method" "any_product_images" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
@@ -555,26 +568,26 @@ resource "aws_api_gateway_method" "any_product_images" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method" "post_product_image" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.product_images.id
-  http_method   = "POST"
-  authorization = "NONE"
-}
+# resource "aws_api_gateway_method" "post_product_image" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.product_images.id
+#   http_method   = "POST"
+#   authorization = "NONE"
+# }
 
-resource "aws_api_gateway_method" "get_product_image" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.product_image.id
-  http_method   = "GET"
-  authorization = "NONE"
-}
+# resource "aws_api_gateway_method" "get_product_image" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.product_image.id
+#   http_method   = "GET"
+#   authorization = "NONE"
+# }
 
-resource "aws_api_gateway_method" "delete_product_image" {
-  rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
-  resource_id   = aws_api_gateway_resource.product_image.id
-  http_method   = "DELETE"
-  authorization = "NONE"
-}
+# resource "aws_api_gateway_method" "delete_product_image" {
+#   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id   = aws_api_gateway_resource.product_image.id
+#   http_method   = "DELETE"
+#   authorization = "NONE"
+# }
 
 resource "aws_api_gateway_method" "any_product_image" {
   rest_api_id   = aws_api_gateway_rest_api.api_gateway.id
@@ -592,14 +605,23 @@ resource "aws_api_gateway_integration" "any_integration" {
   uri                     = aws_lambda_function.api_lambda.invoke_arn
 }
 
-resource "aws_api_gateway_integration" "healthz_integration" {
+resource "aws_api_gateway_integration" "any_any_integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.healthz.id
-  http_method             = aws_api_gateway_method.healthz.http_method
+  resource_id             = aws_api_gateway_resource.any.id
+  http_method             = aws_api_gateway_method.any.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = aws_lambda_function.api_lambda.invoke_arn
 }
+
+# resource "aws_api_gateway_integration" "healthz_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.healthz.id
+#   http_method             = aws_api_gateway_method.healthz.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
 resource "aws_api_gateway_integration" "any_healthz_integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
@@ -610,14 +632,14 @@ resource "aws_api_gateway_integration" "any_healthz_integration" {
   uri                     = aws_lambda_function.api_lambda.invoke_arn
 }
 
-resource "aws_api_gateway_integration" "get_user_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.user.id
-  http_method             = aws_api_gateway_method.get_user.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api_lambda.invoke_arn
-}
+# resource "aws_api_gateway_integration" "get_user_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.user.id
+#   http_method             = aws_api_gateway_method.get_user.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
 resource "aws_api_gateway_integration" "any_user_integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
@@ -628,14 +650,14 @@ resource "aws_api_gateway_integration" "any_user_integration" {
   uri                     = aws_lambda_function.api_lambda.invoke_arn
 }
 
-resource "aws_api_gateway_integration" "post_user_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.post_user.id
-  http_method             = aws_api_gateway_method.post_user.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api_lambda.invoke_arn
-}
+# resource "aws_api_gateway_integration" "post_user_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.post_user.id
+#   http_method             = aws_api_gateway_method.post_user.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
 resource "aws_api_gateway_integration" "any_user_1_integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
@@ -646,23 +668,23 @@ resource "aws_api_gateway_integration" "any_user_1_integration" {
   uri                     = aws_lambda_function.api_lambda.invoke_arn
 }
 
-resource "aws_api_gateway_integration" "put_user_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.user.id
-  http_method             = aws_api_gateway_method.put_user.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api_lambda.invoke_arn
-}
+# resource "aws_api_gateway_integration" "put_user_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.user.id
+#   http_method             = aws_api_gateway_method.put_user.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
-resource "aws_api_gateway_integration" "get_product_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.product.id
-  http_method             = aws_api_gateway_method.get_product.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api_lambda.invoke_arn
-}
+# resource "aws_api_gateway_integration" "get_product_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.product.id
+#   http_method             = aws_api_gateway_method.get_product.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
 resource "aws_api_gateway_integration" "any_product_integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
@@ -673,14 +695,14 @@ resource "aws_api_gateway_integration" "any_product_integration" {
   uri                     = aws_lambda_function.api_lambda.invoke_arn
 }
 
-resource "aws_api_gateway_integration" "post_product_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.post_product.id
-  http_method             = aws_api_gateway_method.post_product.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api_lambda.invoke_arn
-}
+# resource "aws_api_gateway_integration" "post_product_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.post_product.id
+#   http_method             = aws_api_gateway_method.post_product.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
 resource "aws_api_gateway_integration" "any_product_1_integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
@@ -691,41 +713,41 @@ resource "aws_api_gateway_integration" "any_product_1_integration" {
   uri                     = aws_lambda_function.api_lambda.invoke_arn
 }
 
-resource "aws_api_gateway_integration" "put_product_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.product.id
-  http_method             = aws_api_gateway_method.put_product.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api_lambda.invoke_arn
-}
+# resource "aws_api_gateway_integration" "put_product_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.product.id
+#   http_method             = aws_api_gateway_method.put_product.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
-resource "aws_api_gateway_integration" "patch_product_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.product.id
-  http_method             = aws_api_gateway_method.patch_product.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api_lambda.invoke_arn
-}
+# resource "aws_api_gateway_integration" "patch_product_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.product.id
+#   http_method             = aws_api_gateway_method.patch_product.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
-resource "aws_api_gateway_integration" "delete_product_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.product.id
-  http_method             = aws_api_gateway_method.delete_product.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api_lambda.invoke_arn
-}
+# resource "aws_api_gateway_integration" "delete_product_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.product.id
+#   http_method             = aws_api_gateway_method.delete_product.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
-resource "aws_api_gateway_integration" "get_product_images_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.product_images.id
-  http_method             = aws_api_gateway_method.get_product_images.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api_lambda.invoke_arn
-}
+# resource "aws_api_gateway_integration" "get_product_images_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.product_images.id
+#   http_method             = aws_api_gateway_method.get_product_images.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
 resource "aws_api_gateway_integration" "any_product_images_integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
@@ -736,14 +758,14 @@ resource "aws_api_gateway_integration" "any_product_images_integration" {
   uri                     = aws_lambda_function.api_lambda.invoke_arn
 }
 
-resource "aws_api_gateway_integration" "get_product_image_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.product_image.id
-  http_method             = aws_api_gateway_method.get_product_image.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api_lambda.invoke_arn
-}
+# resource "aws_api_gateway_integration" "get_product_image_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.product_image.id
+#   http_method             = aws_api_gateway_method.get_product_image.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
 resource "aws_api_gateway_integration" "any_product_image_integration" {
   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
@@ -754,23 +776,23 @@ resource "aws_api_gateway_integration" "any_product_image_integration" {
   uri                     = aws_lambda_function.api_lambda.invoke_arn
 }
 
-resource "aws_api_gateway_integration" "post_product_image_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.product_images.id
-  http_method             = aws_api_gateway_method.post_product_image.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api_lambda.invoke_arn
-}
+# resource "aws_api_gateway_integration" "post_product_image_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.product_images.id
+#   http_method             = aws_api_gateway_method.post_product_image.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
-resource "aws_api_gateway_integration" "delete_product_image_integration" {
-  rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
-  resource_id             = aws_api_gateway_resource.product_image.id
-  http_method             = aws_api_gateway_method.delete_product_image.http_method
-  integration_http_method = "POST"
-  type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.api_lambda.invoke_arn
-}
+# resource "aws_api_gateway_integration" "delete_product_image_integration" {
+#   rest_api_id             = aws_api_gateway_rest_api.api_gateway.id
+#   resource_id             = aws_api_gateway_resource.product_image.id
+#   http_method             = aws_api_gateway_method.delete_product_image.http_method
+#   integration_http_method = "POST"
+#   type                    = "AWS_PROXY"
+#   uri                     = aws_lambda_function.api_lambda.invoke_arn
+# }
 
 resource "aws_api_gateway_deployment" "my_api_gateway_deployment" {
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
@@ -783,7 +805,7 @@ resource "aws_api_gateway_deployment" "my_api_gateway_deployment" {
     create_before_destroy = true
   }
 
-  depends_on = [aws_api_gateway_integration.delete_product_image_integration]
+  depends_on = [aws_api_gateway_integration.any_product_image_integration]
 }
 
 data "aws_acm_certificate" "ssl_certificate" {
