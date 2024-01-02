@@ -145,9 +145,9 @@ resource "aws_rds_cluster" "aurora_cluster" {
   }
 }
 
-output "rds_output" {
-  value = aws_rds_cluster.aurora_cluster.master_user_secret[0].secret_arn
-}
+# output "rds_output" {
+#   value = aws_rds_cluster.aurora_cluster.master_user_secret[0].secret_arn
+# }
 
 resource "aws_rds_cluster_instance" "aurora_instance" {
   cluster_identifier = aws_rds_cluster.aurora_cluster.id
@@ -328,7 +328,7 @@ resource "aws_iam_role_policy_attachment" "role_attachment" {
 }
 
 resource "aws_lambda_function" "api_lambda" {
-  filename         = "~/Documents/app.zip"
+  filename         = var.artifact_location
   function_name    = "serverless_api"
   role             = aws_iam_role.lambda_s3_aurora.arn
   handler          = "index.handler"
@@ -358,17 +358,18 @@ resource "aws_lambda_function" "api_lambda" {
 
 resource "aws_lambda_permission" "permissions" {
   for_each = {
-    "healthz_permission" : "/ANY/healthz",
-    "create_user_permission" : "/ANY/user",
-    "get_user_permission" : "/ANY/user/*",
+    "all_permission" : "/*/*"
+    # "healthz_permission" : "/ANY/healthz",
+    # "create_user_permission" : "/ANY/user",
+    # "get_user_permission" : "/ANY/user/*",
     # "update_user_permission" : "/PUT/user/*",
-    "get_product_permission" : "/ANY/product/*",
-    "create_product_permission" : "/ANY/product",
+    # "get_product_permission" : "/ANY/product/*",
+    # "create_product_permission" : "/ANY/product",
     # "put_product_permission" : "/PUT/product/*",
     # "patch_product_permission" : "/PATCH/product/*",
     # "delete_product_permission" : "/DELETE/product/*",
-    "get_images_permission" : "/ANY/product/*/image",
-    "get_image_permission" : "/ANY/product/*/image/*",
+    # "get_images_permission" : "/ANY/product/*/image",
+    # "get_image_permission" : "/ANY/product/*/image/*",
     # "upload_image_permission" : "/POST/product/*/image",
     # "delete_image_permission" : "/DELETE/product/*/image/*"
   }
@@ -796,7 +797,7 @@ resource "aws_api_gateway_integration" "any_product_image_integration" {
 
 resource "aws_api_gateway_deployment" "my_api_gateway_deployment" {
   rest_api_id = aws_api_gateway_rest_api.api_gateway.id
-  stage_name  = "v1"
+  stage_name  = var.api_stage
   triggers = {
     redeployment = sha1(jsonencode(aws_api_gateway_rest_api.api_gateway.body))
   }
