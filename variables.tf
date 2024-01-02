@@ -25,3 +25,7 @@ variable "artifact_location" {
 variable "domain" {
   type = string
 }
+
+variable "api_stage" {
+  type = string
+}
