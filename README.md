@@ -1,5 +1,5 @@
 # AWS Fully Serverless Architecture
-![Serverless](https://github.com/NagendraBabuShakamuri/serverless-infra/assets/114452317/f2666609-8b65-4339-bca7-092570f1c9c3)
+![Serverless](https://github.com/NagendraBabuShakamuri/serverless-infra/assets/114452317/4842a95c-b3e8-4e64-88bd-b080159cc852)
 <br><br>
 The aim of this project is to deploy API to AWS Public cloud using only serverless components.
 <br><br>
